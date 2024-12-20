@@ -2,18 +2,20 @@ import React, {useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Modal,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import YouTubePlayer from 'react-native-youtube-iframe';
+import ChannelInfo from '../components/ChannelInfo';
+import Comments from '../components/Comments';
+import Header from '../components/Header';
+import Reactions from '../components/Reactions';
+import VideoCard from '../components/VideoCard';
+import VideoInfo from '../components/VideoInfo';
 import {fetchYouTubeVideos, Video} from '../services/youtube';
+import VideoModal from '../components/VideoModal';
 
 export const HomeScreen: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -55,32 +57,16 @@ export const HomeScreen: React.FC = () => {
     const {title, channelTitle, thumbnails, publishedAt} = item.snippet;
 
     return (
-      <TouchableOpacity
-        style={styles.videoContainer}
-        onPress={() => setSelectedVideo(item)}>
-        {/* Thumbnail */}
-        <Image
-          source={{uri: thumbnails.high?.url || thumbnails.medium.url}}
-          style={styles.thumbnail}
-        />
-        {/* Video Info */}
-        <View style={styles.videoDetails}>
-          {/* Channel Icon */}
-          <Image
-            source={{uri: thumbnails.default?.url || thumbnails.medium.url}}
-            style={styles.channelIcon}
-          />
-          <View style={styles.videoMeta}>
-            <Text numberOfLines={2} style={styles.videoTitle}>
-              {title}
-            </Text>
-            <Text style={styles.videoInfoText}>
-              {channelTitle} • 413K views •{' '}
-              {new Date(publishedAt).toDateString()}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+      <VideoCard
+        title={title}
+        channelTitle={channelTitle}
+        thumbnails={thumbnails}
+        publishedAt={publishedAt}
+        onPress={() => {
+          console.log({item});
+          setSelectedVideo(item);
+        }}
+      />
     );
   };
 
@@ -91,21 +77,32 @@ export const HomeScreen: React.FC = () => {
     }
   };
 
+  const handleLikePress = () => {
+    console.log('Like button pressed');
+  };
+
+  const handleDislikePress = () => {
+    console.log('Dislike button pressed');
+  };
+
+  const handleSharePress = () => {
+    console.log('Share button pressed');
+  };
+
+  const handleDownloadPress = () => {
+    console.log('Download button pressed');
+  };
+
+  console.log({Boolean: Boolean(selectedVideo?.id)});
+
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.logo}>YouTube</Text>
-        <View style={styles.headerIcons}>
-          <Icon name="notifications-outline" size={24} color="white" />
-          <Icon
-            name="search-outline"
-            size={24}
-            color="white"
-            style={{marginLeft: 15}}
-          />
-        </View>
-      </View>
+      <Header
+        logoText="YouTube"
+        onNotificationPress={() => {}}
+        onSearchPress={() => {}}
+      />
 
       {/* Videos List */}
       {loading && <ActivityIndicator size="large" />}
@@ -123,94 +120,19 @@ export const HomeScreen: React.FC = () => {
       />
 
       {/* Modal for Selected Video */}
-      <Modal
-        visible={!!selectedVideo}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setSelectedVideo(null)}>
-        <View style={styles.modalContainer}>
-          {/* Video Player */}
-          {selectedVideo && (
-            <>
-              <YouTubePlayer
-                height={250}
-                videoId={selectedVideo.id}
-                play={true}
-              />
-
-              {/* Video Information */}
-              <ScrollView style={styles.detailsContainer}>
-                <Text style={styles.videoTitle}>
-                  {selectedVideo.snippet.title}
-                </Text>
-                <Text style={styles.videoMeta}>
-                  413K views • {new Date(selectedVideo.snippet.publishedAt).toDateString()}
-                </Text>
-
-                {/* Channel Info */}
-                <View style={styles.channelContainer}>
-                  <Image
-                    source={{
-                      uri:
-                        selectedVideo.snippet.thumbnails.default?.url ||
-                        selectedVideo.snippet.thumbnails.medium.url,
-                    }}
-                    style={styles.channelIcon}
-                  />
-                  <View style={styles.channelDetails}>
-                    <Text style={styles.channelName}>
-                      {selectedVideo.snippet.channelTitle}
-                    </Text>
-                    <Text style={styles.subscriberCount}>7.7K subscribers</Text>
-                  </View>
-                </View>
-
-                {/* Reaction Buttons */}
-                <View style={styles.reactionContainer}>
-                  <TouchableOpacity style={styles.reactionButton}>
-                    <Icon name="thumbs-up-outline" size={20} color="white" />
-                    <Text style={styles.reactionText}>1.4K</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.reactionButton}>
-                    <Icon name="thumbs-down-outline" size={20} color="white" />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.reactionButton}>
-                    <Icon name="share-outline" size={20} color="white" />
-                    <Text style={styles.reactionText}>Share</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.reactionButton}>
-                    <Icon name="download-outline" size={20} color="white" />
-                    <Text style={styles.reactionText}>Download</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Comments Section */}
-                <View style={styles.commentsContainer}>
-                  <Text style={styles.sectionTitle}>Comments</Text>
-                  <View style={styles.addCommentContainer}>
-                    <TextInput
-                      style={styles.commentInput}
-                      placeholder="Add a comment..."
-                      placeholderTextColor="#888"
-                      value={newComment}
-                      onChangeText={setNewComment}
-                      onSubmitEditing={addComment}
-                    />
-                    <TouchableOpacity onPress={addComment}>
-                      <Icon name="send-outline" size={24} color="white" />
-                    </TouchableOpacity>
-                  </View>
-                  {comments.map((comment, index) => (
-                    <Text key={index} style={styles.commentText}>
-                      {comment}
-                    </Text>
-                  ))}
-                </View>
-              </ScrollView>
-            </>
-          )}
-        </View>
-      </Modal>
+      <VideoModal
+        visible={Boolean(selectedVideo)}
+        selectedVideo={selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+        comments={comments}
+        newComment={newComment}
+        setNewComment={setNewComment}
+        onAddComment={addComment}
+        onLikePress={handleLikePress}
+        onDislikePress={handleDislikePress}
+        onSharePress={handleSharePress}
+        onDownloadPress={handleDownloadPress}
+      />
     </View>
   );
 };
@@ -289,16 +211,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
-  channelContainer: {flexDirection: 'row', alignItems: 'center', marginVertical: 10},
+  channelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
   channelDetails: {flex: 1, marginLeft: 10},
   channelName: {color: 'white', fontSize: 16, fontWeight: 'bold'},
   subscriberCount: {color: 'gray', fontSize: 12},
-  reactionContainer: {flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10},
+  reactionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 10,
+  },
   reactionButton: {alignItems: 'center'},
   reactionText: {color: 'white', fontSize: 12, marginTop: 5},
   commentsContainer: {marginVertical: 20},
-  sectionTitle: {color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 10},
-  addCommentContainer: {flexDirection: 'row', alignItems: 'center', marginBottom: 10},
-  commentInput: {flex: 1, color: 'white', backgroundColor: '#333', borderRadius: 5, paddingHorizontal: 10, marginRight: 10},
+  sectionTitle: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  addCommentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  commentInput: {
+    flex: 1,
+    color: 'white',
+    backgroundColor: '#333',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginRight: 10,
+  },
   commentText: {color: 'white', marginBottom: 5},
 });
